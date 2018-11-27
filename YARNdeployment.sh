@@ -328,7 +328,7 @@ case "$1" in
       init-api-management
       ;;
   quick-start)
-      download-source
+      download-source $1
       build-docker
       download-cli
       setup
@@ -368,7 +368,7 @@ case "$1" in
       echo "$0 init-couchdb"
       echo "$0 init-cli"
       echo "$0 init-api-management"
-      echo "$0 quick-start"
+      echo "$0 quick-start <git url>"
       echo "$0 launch"
       echo "$0 stop-stateful"
       echo "$0 stop-stateless"
