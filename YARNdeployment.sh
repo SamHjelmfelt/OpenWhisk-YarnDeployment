@@ -108,6 +108,7 @@ function start-stateful(){
     -v "$TEMP_DIR/couchdb:/usr/local/var/lib/couchdb:rw" \
     --name ${DOCKER_CONTAINER_PREFIX}couchdb \
     apache/couchdb:2.1
+  init-couchdb
   docker run -d \
     -p 2181:2181 \
     -p 2888:2888 \
@@ -126,7 +127,7 @@ function start-stateful(){
     -v "$TEMP_DIR/kafka:/kafka:rw" \
     --name ${DOCKER_CONTAINER_PREFIX}kafka \
     wurstmeister/kafka:0.11.0.1
-  docker run -d -p 6379:6379 --name redis redis:2.8
+  docker run -d -p 6379:6379 --name ${DOCKER_CONTAINER_PREFIX}redis redis:2.8
 }
 
 function start-stateless(){
@@ -138,7 +139,7 @@ function start-stateless(){
   if [ "$UNAME_STR" = "Linux" ]; then
     sed -i "s/MINIO_HOST/$LOCAL_IP/g" "apigateway/rclone/rclone.conf"
   else
-    sed -i '' "s/MINIO_HOST/test/g" "apigateway/rclone/rclone.conf"
+    sed -i '' "s/MINIO_HOST/$LOCAL_IP/g" "apigateway/rclone/rclone.conf"
   fi
 
   docker run -d \
@@ -266,7 +267,7 @@ function init-api-management(){
 
 function post_config_to_minio(){
   s3Bucket="api-gateway"
-  file="apigateway/generated-conf.d/whisk-docker-compose.conf"
+  file="apigateway/generated-conf.d/api-gateway.conf"
   s3AccessKey="5VCTEQOQ0GR0NV1T67GN"
   s3SecretKey="8MBK5aJTR330V1sohz4n1i7W5Wv/jzahARNHUzi3"
 
@@ -304,7 +305,7 @@ case "$1" in
       download-cli
       ;;
   download-source)
-      download-source $1
+      download-source $2
       ;;
   build-docker)
       build-docker
@@ -318,9 +319,6 @@ case "$1" in
   start-stateless)
       start-stateless
       ;;
-  init-couchdb)
-      init-couchdb
-      ;;
   init-cli)
       init-cli
       ;;
@@ -328,20 +326,18 @@ case "$1" in
       init-api-management
       ;;
   quick-start)
-      download-source $1
+      download-source $2
       build-docker
       download-cli
       setup
       start-stateful
       start-stateless
-      init-couchdb
       init-cli
       init-api-management
       ;;
   launch)
       start-stateful
       start-stateless
-      init-couchdb
       init-cli
       init-api-management
       ;;
@@ -365,7 +361,6 @@ case "$1" in
       echo "$0 setup"
       echo "$0 start-stateful"
       echo "$0 start-stateless"
-      echo "$0 init-couchdb"
       echo "$0 init-cli"
       echo "$0 init-api-management"
       echo "$0 quick-start <git url>"
