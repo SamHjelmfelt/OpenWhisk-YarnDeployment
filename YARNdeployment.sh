@@ -27,6 +27,17 @@ OPEN_WHISK_DB_PREFIX="local_"
 TEMP_DIR=$(pwd)/tmp
 LOG_DIR=$(pwd)/logs
 
+function download-source(){
+	echo "Cloning repo...."
+        rm -rf "$OPENWHISK_PROJECT_HOME"
+        git clone $1 "$OPENWHISK_PROJECT_HOME"
+}
+function build-docker(){
+	echo "building the OpenWhisk core docker images ... "
+        cd "$OPENWHISK_PROJECT_HOME" && \
+                ./gradlew distDocker -PdockerImagePrefix=$DOCKER_IMAGE_PREFIX
+}
+
 function download-cli(){
 	echo "downloading the CLI tool ... "
 	mkdir $OPENWHISK_PROJECT_HOME/bin/
@@ -43,16 +54,6 @@ function download-cli(){
             tar -xf wsk.tgz
             rm wsk.tgz
         fi
-}
-function download-source(){
-	echo "Cloning repo...."
-        rm -rf "$OPENWHISK_PROJECT_HOME"
-        git clone $1 "$OPENWHISK_PROJECT_HOME"
-}
-function build-docker(){
-	echo "building the OpenWhisk core docker images ... "
-        cd "$OPENWHISK_PROJECT_HOME" && \
-                ./gradlew distDocker -PdockerImagePrefix=$DOCKER_IMAGE_PREFIX
 }
 function setup(){
 	      echo "Running Setup"
@@ -255,15 +256,6 @@ function init-couchdb() {
                         -e db_host=$LOCAL_IP -e openwhisk_home=/openwhisk -e db_prefix=$OPEN_WHISK_DB_PREFIX"
         rm -rf "$TEMP_DIR/src"
 }
-function init-api-management(){
-	 "$WSK_CLI" -v property set --namespace whisk.system --auth `cat "$OPENWHISK_PROJECT_HOME/ansible/files/auth.whisk.system"` --apihost $LOCAL_IP -i
-   export GW_USER=""
-   export GW_PWD=""
-   export GW_HOST_V2="http://$LOCAL_IP:9000/v2"
-   export OPENWHISK_HOME="$OPENWHISK_PROJECT_HOME"
-   "$OPENWHISK_PROJECT_HOME/ansible/roles/routemgmt/files/installRouteMgmt.sh" $(cat "$OPENWHISK_PROJECT_HOME/ansible/files/auth.whisk.system") $LOCAL_IP /whisk.system "$WSK_CLI"
-   "$WSK_CLI" -v property set --namespace guest --auth `cat "$OPENWHISK_PROJECT_HOME/ansible/files/auth.guest"` --apihost $LOCAL_IP -i
-}
 
 function post_config_to_minio(){
   s3Bucket="api-gateway"
@@ -310,36 +302,11 @@ case "$1" in
   build-docker)
       build-docker
       ;;
-  setup)
-      setup
-      ;;
   start-stateful)
       start-stateful
       ;;
   start-stateless)
       start-stateless
-      ;;
-  init-cli)
-      init-cli
-      ;;
-  init-api-management)
-      init-api-management
-      ;;
-  quick-start)
-      download-source $2
-      build-docker
-      download-cli
-      setup
-      start-stateful
-      start-stateless
-      init-cli
-      init-api-management
-      ;;
-  launch)
-      start-stateful
-      start-stateless
-      init-cli
-      init-api-management
       ;;
   stop-stateful)
       stop-stateful
@@ -353,21 +320,38 @@ case "$1" in
   remove-stateless)
       remove-stateless
       ;;
+  init-cli)
+      init-cli
+      ;;
+  quick-start)
+      download-source $2
+      build-docker
+      download-cli
+      start-stateful
+      start-stateless
+      init-cli
+      ;;
+  launch)
+      start-stateful
+      start-stateless
+      init-cli
+      ;;
   *)
       echo "Usage: "
-      echo "$0 download-cli"
-      echo "$0 download-source <git url>"
-      echo "$0 build-docker"
-      echo "$0 setup"
-      echo "$0 start-stateful"
-      echo "$0 start-stateless"
-      echo "$0 init-cli"
-      echo "$0 init-api-management"
-      echo "$0 quick-start <git url>"
-      echo "$0 launch"
-      echo "$0 stop-stateful"
-      echo "$0 stop-stateless"
-      echo "$0 remove-stateful"
-      echo "$0 remove-stateless"
+      echo "$0 download-cli - Downloads the OpenWhisk cli into ./openwhisk-src/bin"
+      echo "$0 download-source <git url> - Git clones the provided repo into ./openwhisk-src"
+      echo "$0 build-docker - Compiles the OpenWhisk source and builds the OpenWhisk images with a prefix of 'openwhisk'"
+      echo ""
+      echo "$0 start-stateful  - Starts the stateful containers:   ow_minio, ow_couchdb, ow_zookeeper, ow_kafka, ow_redis"
+      echo "$0 stop-stateful   - Stops the stateful containers:    ow_minio, ow_couchdb, ow_zookeeper, ow_kafka, ow_redis"
+      echo "$0 stop-stateful   - Removes the stateful containers:  ow_minio, ow_couchdb, ow_zookeeper, ow_kafka, ow_redis"
+      echo ""
+      echo "$0 start-stateless - Starts the stateless containers:  ow_controller, ow_invoker, ow_apigateway"
+      echo "$0 stop-stateless  - Stops the stateless containers:   ow_controller, ow_invoker, ow_apigateway"
+      echo "$0 stop-stateless  - Removes the stateless containers: ow_controller, ow_invoker, ow_apigateway"
+      echo ""
+      echo "$0 init-cli - Initializes the cli with the gateway endpoint and guest auth"
+      echo "$0 quick-start <git url> - Runs download-source, build-docker, download-cli, start-stateful, start-stateless, init-cli"
+      echo "$0 launch - Runs start-stateful, start-stateless, init-cli"
       ;;
 esac
