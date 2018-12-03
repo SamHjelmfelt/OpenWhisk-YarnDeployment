@@ -2,8 +2,16 @@
 
 A refactored version of the openwhisk-devtools docker compose project made specifically for OpenWhisk on YARN. The "docker-whisk-controller.env" file can be used to configure the OpenWhisk services.
 
-For a quickstart run the following. It will git clone the openwhisk repo, compile the source, build the docker images, and launch both stateful and stateless master services on the local machine.
+For a quickstart run the following:
 ```
+# Download this repo
+git clone https://github.com/SamHjelmfelt/OpenWhisk-YarnDeployment.git
+cd OpenWhisk-YarnDeployment
+
+# Edit YARN settings. By default, OpenWhisk action containers will be run on the local machine
+vi docker-whisk-controller.env
+
+# Download, build, and run OpenWhisk with YARN support
 ./YARNdeployment.sh quick-start https://github.com/SamHjelmfelt/incubator-openwhisk.git
 ```
 
