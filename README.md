@@ -13,23 +13,29 @@ vi docker-whisk-controller.env
 
 # Download, build, and run OpenWhisk with YARN support
 ./YARNdeployment.sh quick-start https://github.com/SamHjelmfelt/incubator-openwhisk.git
+
+# Test
+./openwhisk-src/bin/wsk -i action create yahooWeather weather.js
+./openwhisk-src/bin/wsk -i action invoke --blocking --result yahooWeather --param location "San Francisco, CA"
 ```
 
 Usage:
 ```
+Setup:
+./YARNdeployment.sh download-source <git url> - Git clones the provided repo into ./openwhisk-src
 ./YARNdeployment.sh download-cli - Downloads the OpenWhisk cli into ./openwhisk-src/bin
-./YARNdeployment.sh download-source <git url> - Clones the provided git repo into ./openwhisk-src
 ./YARNdeployment.sh build-docker - Compiles the OpenWhisk source and builds the OpenWhisk images with a prefix of 'openwhisk'
+./YARNdeployment.sh init-cli - Initializes the cli with the gateway endpoint and guest auth. All containers must be running
 
-./YARNdeployment.sh start-stateful  - Starts the stateful containers:   ow_minio, ow_couchdb, ow_zookeeper, ow_kafka, ow_redis
-./YARNdeployment.sh stop-stateful   - Stops the stateful containers:    ow_minio, ow_couchdb, ow_zookeeper, ow_kafka, ow_redis
-./YARNdeployment.sh stop-stateful   - Removes the stateful containers:  ow_minio, ow_couchdb, ow_zookeeper, ow_kafka, ow_redis
+Container operations:
+  Stateful containers:  ow_minio, ow_couchdb, ow_zookeeper, ow_kafka, ow_redis
+  Stateless containers: ow_controller, ow_invoker, ow_apigateway
+./YARNdeployment.sh run-[stateful|stateless|all]    - Runs the specified containers
+./YARNdeployment.sh stop-[stateful|stateless|all]   - Stops the specified containers
+./YARNdeployment.sh start-[stateful|stateless|all]  - Starts the specified containers if they are stopped
+./YARNdeployment.sh remove-[stateful|stateless|all] - Removes the specified containers
 
-./YARNdeployment.sh start-stateless - Starts the stateless containers:  ow_controller, ow_invoker, ow_apigateway
-./YARNdeployment.sh stop-stateless  - Stops the stateless containers:   ow_controller, ow_invoker, ow_apigateway
-./YARNdeployment.sh stop-stateless  - Removes the stateless containers: ow_controller, ow_invoker, ow_apigateway
-
-./YARNdeployment.sh init-cli - Initializes the cli with the gateway endpoint and guest auth
-./YARNdeployment.sh quick-start <git url> - Runs download-source, build-docker, download-cli, start-stateful, start-stateless, init-cli
-./YARNdeployment.sh launch - Runs start-stateful, start-stateless, init-cli
+Shortcuts:
+./YARNdeployment.sh quick-start <git url> - Executes download-source, build-docker, download-cli, run-stateful, run-stateless, init-cli
+./YARNdeployment.sh launch - Executes run-stateful, run-stateless, init-cli
 ```

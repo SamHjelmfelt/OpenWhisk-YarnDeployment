@@ -29,62 +29,62 @@ LOG_DIR=$(pwd)/logs
 
 function download-source(){
 	echo "Cloning repo...."
-        rm -rf "$OPENWHISK_PROJECT_HOME"
-        git clone $1 "$OPENWHISK_PROJECT_HOME"
+  rm -rf "$OPENWHISK_PROJECT_HOME"
+  git clone $1 "$OPENWHISK_PROJECT_HOME"
 }
 function build-docker(){
 	echo "building the OpenWhisk core docker images ... "
-        cd "$OPENWHISK_PROJECT_HOME" && \
-                ./gradlew distDocker -PdockerImagePrefix=$DOCKER_IMAGE_PREFIX
+  cd "$OPENWHISK_PROJECT_HOME" && \
+  ./gradlew distDocker -PdockerImagePrefix=$DOCKER_IMAGE_PREFIX
 }
 
 function download-cli(){
 	echo "downloading the CLI tool ... "
 	mkdir $OPENWHISK_PROJECT_HOME/bin/
-        if [ "$UNAME_STR" = "Darwin" ]; then
-          echo "downloading cli for mac"
-          curl -o "$OPENWHISK_PROJECT_HOME/bin/wsk.zip" -L https://github.com/apache/incubator-openwhisk-cli/releases/download/latest/OpenWhisk_CLI-latest-mac-amd64.zip
-          cd "$OPENWHISK_PROJECT_HOME/bin/"
-          unzip -o wsk.zip;
-          rm wsk.zip
-        elif [ "$UNAME_STR" = "Linux" ]; then
-          echo "downloading cli for linux"
-          curl -o "$OPENWHISK_PROJECT_HOME/bin/wsk.tgz" -L https://github.com/apache/incubator-openwhisk-cli/releases/download/latest/OpenWhisk_CLI-latest-linux-amd64.tgz
-            cd "$OPENWHISK_PROJECT_HOME/bin/"
-            tar -xf wsk.tgz
-            rm wsk.tgz
-        fi
+  if [ "$UNAME_STR" = "Darwin" ]; then
+    echo "downloading cli for mac"
+    curl -o "$OPENWHISK_PROJECT_HOME/bin/wsk.zip" -L https://github.com/apache/incubator-openwhisk-cli/releases/download/latest/OpenWhisk_CLI-latest-mac-amd64.zip
+    cd "$OPENWHISK_PROJECT_HOME/bin/"
+    unzip -o wsk.zip;
+    rm wsk.zip
+  elif [ "$UNAME_STR" = "Linux" ]; then
+    echo "downloading cli for linux"
+    curl -o "$OPENWHISK_PROJECT_HOME/bin/wsk.tgz" -L https://github.com/apache/incubator-openwhisk-cli/releases/download/latest/OpenWhisk_CLI-latest-linux-amd64.tgz
+      cd "$OPENWHISK_PROJECT_HOME/bin/"
+      tar -xf wsk.tgz
+      rm wsk.tgz
+  fi
 }
 function setup(){
-	      echo "Running Setup"
-	      mkdir "$TEMP_DIR"
-        mkdir "$LOG_DIR"
-        chmod 777 "$LOG_DIR"
-        printf "DOCKER_BINARY=$DOCKER_BINARY\n" > "$TEMP_DIR/local.env"
-        printf "DOCKER_REGISTRY=$DOCKER_REGISTRY\n" >> "$TEMP_DIR/local.env"
-        printf "DOCKER_IMAGE_PREFIX=$DOCKER_IMAGE_PREFIX\n" >> "$TEMP_DIR/local.env"
+	  echo "Running Setup"
+	  mkdir "$TEMP_DIR"
+    mkdir "$LOG_DIR"
+    chmod 777 "$LOG_DIR"
+    printf "DOCKER_BINARY=$DOCKER_BINARY\n" > "$TEMP_DIR/local.env"
+    printf "DOCKER_REGISTRY=$DOCKER_REGISTRY\n" >> "$TEMP_DIR/local.env"
+    printf "DOCKER_IMAGE_PREFIX=$DOCKER_IMAGE_PREFIX\n" >> "$TEMP_DIR/local.env"
 
-        echo "  ... preparing api-gateway configuration"
-        rm -rf "$TEMP_DIR/api-gateway-config"
-        mkdir -p "$TEMP_DIR/api-gateway-config/api-gateway"
-        cp -r ./apigateway/* "$TEMP_DIR/api-gateway-config/api-gateway/"
-        cp -r ./apigateway/rclone "$TEMP_DIR"
+    echo "  ... preparing api-gateway configuration"
+    rm -rf "$TEMP_DIR/api-gateway-config"
+    mkdir -p "$TEMP_DIR/api-gateway-config/api-gateway"
+    cp -r ./apigateway/* "$TEMP_DIR/api-gateway-config/api-gateway/"
+    cp -r ./apigateway/rclone "$TEMP_DIR"
 
-        "$OPENWHISK_PROJECT_HOME/ansible/files/genssl.sh" $LOCAL_IP server "$OPENWHISK_PROJECT_HOME/ansible/roles/nginx/files"
-        mkdir -p "$TEMP_DIR"/api-gateway-ssl
-        cp "$OPENWHISK_PROJECT_HOME"/ansible/roles/nginx/files/*.pem "$TEMP_DIR/api-gateway-ssl"
+    "$OPENWHISK_PROJECT_HOME/ansible/files/genssl.sh" $LOCAL_IP server "$OPENWHISK_PROJECT_HOME/ansible/roles/nginx/files"
+    mkdir -p "$TEMP_DIR"/api-gateway-ssl
+    cp "$OPENWHISK_PROJECT_HOME"/ansible/roles/nginx/files/*.pem "$TEMP_DIR/api-gateway-ssl"
 
-        touch "$LOG_DIR/controller-local_logs.log"
-        chmod 666 "$LOG_DIR/controller-local_logs.log"
+    touch "$LOG_DIR/controller-local_logs.log"
+    chmod 666 "$LOG_DIR/controller-local_logs.log"
 }
 
 function init_cli(){
-	      echo "waiting for the Whisk controller to come up ... "
-        until [ $(curl --output /dev/null --silent --head --fail "http://$LOCAL_IP:8888/ping") ]; do printf '.'; sleep 5; done
-        echo "initializing CLI ... "
-        $(WSK_CLI) -v property set --namespace guest --auth `cat "$OPENWHISK_PROJECT_HOME/ansible/files/auth.guest"` --apihost "https://$LOCAL_IP" -i
+	  echo "waiting for the Whisk controller to come up ... "
+    until [ $(curl --output /dev/null --silent --head --fail "http://$LOCAL_IP:8888/ping") ]; do printf '.'; sleep 5; done
+    echo "initializing CLI ... "
+    $(WSK_CLI) -v property set --namespace guest --auth `cat "$OPENWHISK_PROJECT_HOME/ansible/files/auth.guest"` --apihost "https://$LOCAL_IP" -i
 }
-function start-stateful(){
+function run-stateful(){
 	if [ ! -f "$TEMP_DIR/local.env" ]; then
           setup
   fi
@@ -131,10 +131,10 @@ function start-stateful(){
   docker run -d -p 6379:6379 --name ${DOCKER_CONTAINER_PREFIX}redis redis:2.8
 }
 
-function start-stateless(){
+function run-stateless(){
   withJaaS=$1
 	if [ ! -f "$TEMP_DIR/local.env" ]; then
-          setup
+    setup
   fi
   #update minio host
   if [ "$UNAME_STR" = "Linux" ]; then
@@ -221,17 +221,39 @@ function start-stateless(){
     --name ${DOCKER_CONTAINER_PREFIX}apigateway \
     "openwhisk/apigateway:latest"
 }
+function run-all(){
+  run-stateful
+  run-stateless
+}
 function stop-stateless(){
   docker stop ${DOCKER_CONTAINER_PREFIX}controller ${DOCKER_CONTAINER_PREFIX}invoker ${DOCKER_CONTAINER_PREFIX}apigateway
 }
 function stop-stateful(){
   docker stop ${DOCKER_CONTAINER_PREFIX}minio ${DOCKER_CONTAINER_PREFIX}couchdb ${DOCKER_CONTAINER_PREFIX}zookeeper ${DOCKER_CONTAINER_PREFIX}kafka ${DOCKER_CONTAINER_PREFIX}redis
 }
+function stop-all(){
+  stop-stateful
+  stop-stateless
+}
+function start-stateless(){
+  docker start ${DOCKER_CONTAINER_PREFIX}controller ${DOCKER_CONTAINER_PREFIX}invoker ${DOCKER_CONTAINER_PREFIX}apigateway
+}
+function start-stateful(){
+  docker start ${DOCKER_CONTAINER_PREFIX}minio ${DOCKER_CONTAINER_PREFIX}couchdb ${DOCKER_CONTAINER_PREFIX}zookeeper ${DOCKER_CONTAINER_PREFIX}kafka ${DOCKER_CONTAINER_PREFIX}redis
+}
+function start-all(){
+  start-stateful
+  start-stateless
+}
 function remove-stateless(){
   docker rm -f ${DOCKER_CONTAINER_PREFIX}controller ${DOCKER_CONTAINER_PREFIX}invoker ${DOCKER_CONTAINER_PREFIX}apigateway
 }
 function remove-stateful(){
   docker rm -f ${DOCKER_CONTAINER_PREFIX}minio ${DOCKER_CONTAINER_PREFIX}couchdb ${DOCKER_CONTAINER_PREFIX}zookeeper ${DOCKER_CONTAINER_PREFIX}kafka ${DOCKER_CONTAINER_PREFIX}redis
+}
+function remove-all(){
+  remove-stateful
+  remove-stateless
 }
 function init-cli(){
     echo "waiting for the Whisk controller to come up ... "
@@ -240,21 +262,21 @@ function init-cli(){
     "$WSK_CLI" -v property set --namespace guest --auth $(cat "$OPENWHISK_PROJECT_HOME/ansible/files/auth.guest") --apihost "https://$LOCAL_IP" -i
 }
 function init-couchdb() {
-	      echo "waiting for the database to come up ... on $LOCAL_IP"
-        while ! nc -z $LOCAL_IP 5984 ; do printf '.'; sleep 5; done
-        echo "initializing the database ... on $LOCAL_IP"
-        # make sure the src files are in a shared folder for docker
-        mkdir -p "$TEMP_DIR"
-        rm -rf "$TEMP_DIR/src"
-        rsync -a "$OPENWHISK_PROJECT_HOME/"* "$TEMP_DIR/src" --exclude .git --exclude build --exclude tests
-        echo 'Setting up db using ansible container....'
-    	  docker run --rm -v "$TEMP_DIR/src:/openwhisk" -w "/openwhisk/ansible" \
-                --network="$DOCKER_NETWORK" -t \
-                --add-host="db:$LOCAL_IP" \
-                ddragosd/ansible:2.4.0.0-debian8  \
-                sh -c "ansible-playbook setup.yml && ansible-playbook couchdb.yml --tags=ini && ansible-playbook initdb.yml wipe.yml \
-                        -e db_host=$LOCAL_IP -e openwhisk_home=/openwhisk -e db_prefix=$OPEN_WHISK_DB_PREFIX"
-        rm -rf "$TEMP_DIR/src"
+    echo "waiting for the database to come up ... on $LOCAL_IP"
+    while ! nc -z $LOCAL_IP 5984 ; do printf '.'; sleep 5; done
+    echo "initializing the database ... on $LOCAL_IP"
+    # make sure the src files are in a shared folder for docker
+    mkdir -p "$TEMP_DIR"
+    rm -rf "$TEMP_DIR/src"
+    rsync -a "$OPENWHISK_PROJECT_HOME/"* "$TEMP_DIR/src" --exclude .git --exclude build --exclude tests
+    echo 'Setting up db using ansible container....'
+    docker run --rm -v "$TEMP_DIR/src:/openwhisk" -w "/openwhisk/ansible" \
+            --network="$DOCKER_NETWORK" -t \
+            --add-host="db:$LOCAL_IP" \
+            ddragosd/ansible:2.4.0.0-debian8  \
+            sh -c "ansible-playbook setup.yml && ansible-playbook couchdb.yml --tags=ini && ansible-playbook initdb.yml wipe.yml \
+                    -e db_host=$LOCAL_IP -e openwhisk_home=/openwhisk -e db_prefix=$OPEN_WHISK_DB_PREFIX"
+    rm -rf "$TEMP_DIR/src"
 }
 
 function post_config_to_minio(){
@@ -302,11 +324,14 @@ case "$1" in
   build-docker)
       build-docker
       ;;
-  start-stateful)
-      start-stateful
+  run-stateful)
+      run-stateful
       ;;
-  start-stateless)
-      start-stateless
+  run-stateless)
+      run-stateless
+      ;;
+  run-all)
+      run-all
       ;;
   stop-stateful)
       stop-stateful
@@ -314,11 +339,26 @@ case "$1" in
   stop-stateless)
       stop-stateless
       ;;
+  stop-all)
+      stop-all
+      ;;
+  start-stateful)
+      start-stateful
+      ;;
+  start-stateless)
+      start-stateless
+      ;;
+  start-all)
+      start-all
+      ;;
   remove-stateful)
       remove-stateful
       ;;
   remove-stateless)
       remove-stateless
+      ;;
+  remove-all)
+      remove-all
       ;;
   init-cli)
       init-cli
@@ -327,31 +367,34 @@ case "$1" in
       download-source $2
       build-docker
       download-cli
-      start-stateful
-      start-stateless
+      run-stateful
+      run-stateless
       init-cli
       ;;
   launch)
-      start-stateful
-      start-stateless
+      run-stateful
+      run-stateless
       init-cli
       ;;
   *)
-      echo "Usage: "
-      echo "$0 download-cli - Downloads the OpenWhisk cli into ./openwhisk-src/bin"
+      echo "Usage"
+      echo ""
+      echo "Setup:"
       echo "$0 download-source <git url> - Git clones the provided repo into ./openwhisk-src"
+      echo "$0 download-cli - Downloads the OpenWhisk cli into ./openwhisk-src/bin"
       echo "$0 build-docker - Compiles the OpenWhisk source and builds the OpenWhisk images with a prefix of 'openwhisk'"
+      echo "$0 init-cli - Initializes the cli with the gateway endpoint and guest auth. All containers must be running"
       echo ""
-      echo "$0 start-stateful  - Starts the stateful containers:   ow_minio, ow_couchdb, ow_zookeeper, ow_kafka, ow_redis"
-      echo "$0 stop-stateful   - Stops the stateful containers:    ow_minio, ow_couchdb, ow_zookeeper, ow_kafka, ow_redis"
-      echo "$0 stop-stateful   - Removes the stateful containers:  ow_minio, ow_couchdb, ow_zookeeper, ow_kafka, ow_redis"
+      echo "Container operations:"
+      echo "  Stateful containers:  ow_minio, ow_couchdb, ow_zookeeper, ow_kafka, ow_redis"
+      echo "  Stateless containers: ow_controller, ow_invoker, ow_apigateway"
+      echo "$0 run-[stateful|stateless|all]    - Runs the specified containers"
+      echo "$0 stop-[stateful|stateless|all]   - Stops the specified containers"
+      echo "$0 start-[stateful|stateless|all]  - Starts the specified containers if they are stopped"
+      echo "$0 remove-[stateful|stateless|all] - Removes the specified containers"
       echo ""
-      echo "$0 start-stateless - Starts the stateless containers:  ow_controller, ow_invoker, ow_apigateway"
-      echo "$0 stop-stateless  - Stops the stateless containers:   ow_controller, ow_invoker, ow_apigateway"
-      echo "$0 stop-stateless  - Removes the stateless containers: ow_controller, ow_invoker, ow_apigateway"
-      echo ""
-      echo "$0 init-cli - Initializes the cli with the gateway endpoint and guest auth"
-      echo "$0 quick-start <git url> - Runs download-source, build-docker, download-cli, start-stateful, start-stateless, init-cli"
-      echo "$0 launch - Runs start-stateful, start-stateless, init-cli"
+      echo "Shortcuts:"
+      echo "$0 quick-start <git url> - Executes download-source, build-docker, download-cli, run-stateful, run-stateless, init-cli"
+      echo "$0 launch - Executes run-stateful, run-stateless, init-cli"
       ;;
 esac
