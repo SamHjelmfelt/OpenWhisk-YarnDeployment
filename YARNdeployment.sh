@@ -296,6 +296,7 @@ function post_config_to_minio(){
   -H "Host: ${host}" \
   -H "Date: ${dateFormatted}" \
   -H "Content-Type: ${contentType}" \
+  -H "Content-Length: 0" \
   -H "Authorization:AWS ${s3AccessKey}:${signature}" \
   -X PUT \
   "http://${host}${relativePath}"
