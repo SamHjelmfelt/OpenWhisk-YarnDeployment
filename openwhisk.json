@@ -1,0 +1,144 @@
+{
+  "name": "openwhisk-master-service",
+  "version": "1.0.0",
+  "description": "Apache Openwhisk Master Containers",
+  "components" :
+    [
+      {
+        "name": "redis",
+        "number_of_containers": 1,
+        "artifact": {
+          "id": "library/redis",
+          "type": "DOCKER"
+        },
+        "launch_command": "",
+        "resource": {
+          "cpus": 1,
+          "memory": "256"
+        },
+        "configuration": {
+          "env": {
+            "YARN_CONTAINER_RUNTIME_DOCKER_RUN_OVERRIDE_DISABLE": "true"
+          }
+        }
+      },
+      {
+        "name": "controller",
+        "number_of_containers": 1,
+        "artifact": {
+          "id": "openwhisk/controller",
+          "type": "DOCKER"
+        },
+        "launch_command": "",
+        "resource": {
+          "cpus": 1,
+          "memory": "256"
+        },
+        "configuration": {
+          "env": {
+            CONTROLLER_EXTRA_ENV
+            "PATH":"/usr/sbin:/sbin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/bin/",
+            "JAVA_HOME":"/opt/java/openjdk",
+            "YARN_CONTAINER_RUNTIME_DOCKER_RUN_OVERRIDE_DISABLE": "true",
+            "COMPONENT_NAME": "controller",
+            "PORT": "8888",
+            "KAFKA_HOSTS": "KAFKA_IP:9092",
+            "ZOOKEEPER_HOSTS": "ZOOKEEPER_IP:2181",
+            "CONFIG_whisk_couchdb_provider": "CouchDB",
+            "CONFIG_whisk_couchdb_protocol": "http",
+            "CONFIG_whisk_couchdb_port": "5984",
+            "CONFIG_whisk_couchdb_host": "COUCHDB_IP",
+            "CONFIG_whisk_couchdb_username": "whisk_admin",
+            "CONFIG_whisk_couchdb_password": "some_passw0rd",
+            "CONFIG_akka_remote_netty_tcp_hostname": "localhost",
+            "CONFIG_akka_remote_netty_tcp_port": "2551",
+            "CONFIG_akka_remote_netty_tcp_bindPort": "2551",
+            "CONFIG_akka_actor_provider": "cluster",
+            "LOADBALANCER_HOST": "apigateway-0.${SERVICE_NAME}.${USER}.${DOMAIN}",
+            "LOADBALANCER_HOST_PORT": "443"
+          }
+        }
+      },
+      {
+        "name": "invoker",
+        "number_of_containers": 1,
+        "artifact": {
+          "id": "openwhisk/invoker",
+          "type": "DOCKER"
+        },
+        "launch_command":  "/init.sh,--id,0",
+        "resource": {
+          "cpus": 1,
+          "memory": "256"
+        },
+        "configuration": {
+          "env": {
+            INVOKER_EXTRA_ENV
+            "PATH":"/usr/sbin:/sbin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/bin/",
+            "JAVA_HOME":"/opt/java/openjdk",
+            "YARN_CONTAINER_RUNTIME_DOCKER_RUN_OVERRIDE_DISABLE": "true",
+            "COMPONENT_NAME": "invoker",
+            "SERVICE_NAME": "invoker0",
+            "PORT": "8085",
+            "KAFKA_HOSTS": "KAFKA_IP:9092",
+            "ZOOKEEPER_HOSTS": "ZOOKEEPER_IP:2181",
+            "CONFIG_whisk_couchdb_provider": "CouchDB",
+            "CONFIG_whisk_couchdb_protocol": "http",
+            "CONFIG_whisk_couchdb_port": "5984",
+            "CONFIG_whisk_couchdb_host": "COUCHDB_IP",
+            "CONFIG_whisk_couchdb_username": "whisk_admin",
+            "CONFIG_whisk_couchdb_password": "some_passw0rd",
+            "EDGE_HOST": "apigateway-0.${SERVICE_NAME}.${USER}.${DOMAIN}",
+            "EDGE_HOST_APIPORT": "443",
+            "WHISK_API_HOST_NAME": "apigateway-0.${SERVICE_NAME}.${USER}.${DOMAIN}"
+          }
+        }
+      },
+      {
+        "name": "apigateway",
+        "number_of_containers": 1,
+        "artifact": {
+          "id": "openwhisk/apigateway",
+          "type": "DOCKER"
+        },
+        "launch_command": "",
+        "resource": {
+          "cpus": 1,
+          "memory": "2048"
+        },
+        "configuration": {
+          "env": {
+            "YARN_CONTAINER_RUNTIME_DOCKER_RUN_OVERRIDE_DISABLE": "true",
+            "PATH":"/usr/sbin:/sbin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/bin/",
+            "JAVA_HOME":"/opt/java/openjdk",
+            "REDIS_HOST": "redis-0.${SERVICE_NAME}.${USER}.${DOMAIN}",
+            "REDIS_PORT": "6379",
+            "PUBLIC_MANAGEDURL_PORT": "9090",
+            "PUBLIC_MANAGEDURL_HOST": "apigateway-0.${SERVICE_NAME}.${USER}.${DOMAIN}",
+            "REMOTE_CONFIG": "minio:api-gateway"
+          },
+          "files": [
+          {
+            "type": "TEMPLATE",
+            "dest_file": "/etc/api-gateway/generated-conf.d/api-gateway.conf",
+            "src_file": "HDFS_DIR/api-gateway.conf"
+          },
+          {
+            "type": "TEMPLATE",
+            "dest_file": "/.rclone.conf",
+            "src_file": "HDFS_DIR/rclone.conf"
+          },
+          {
+            "type": "TEMPLATE",
+            "dest_file": "/etc/ssl/openwhisk-server-cert.pem",
+            "src_file": "HDFS_DIR/openwhisk-server-cert.pem"
+          },
+          {
+            "type": "TEMPLATE",
+            "dest_file": "/etc/ssl/openwhisk-server-key.pem",
+            "src_file": "HDFS_DIR/openwhisk-server-key.pem"
+          }]
+        }
+      }
+    ]
+}

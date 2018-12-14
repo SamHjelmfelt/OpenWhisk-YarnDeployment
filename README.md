@@ -8,11 +8,11 @@ For a quickstart run the following:
 git clone https://github.com/SamHjelmfelt/OpenWhisk-YarnDeployment.git
 cd OpenWhisk-YarnDeployment
 
-# Edit YARN settings. By default, OpenWhisk action containers will be run on the local machine
+# Edit YARN settings. Documentation can be found here: https://github.com/SamHjelmfelt/incubator-openwhisk/blob/master/docs/yarn.md
 vi docker-whisk-controller.env
 
 # Download, build, and run OpenWhisk with YARN support
-./YARNdeployment.sh quick-start https://github.com/SamHjelmfelt/incubator-openwhisk.git
+./YARNdeployment.sh quick-start https://github.com/SamHjelmfelt/incubator-openwhisk.git yarnnetwork
 
 # Test
 ./openwhisk-src/bin/wsk -i action create yahooWeather weather.js
@@ -28,14 +28,17 @@ Setup:
 ./YARNdeployment.sh init-cli - Initializes the cli with the gateway endpoint and guest auth. All containers must be running
 
 Container operations:
-  Stateful containers:  ow_minio, ow_couchdb, ow_zookeeper, ow_kafka, ow_redis
-  Stateless containers: ow_controller, ow_invoker, ow_apigateway
-./YARNdeployment.sh run-[stateful|stateless|all]    - Runs the specified containers
-./YARNdeployment.sh stop-[stateful|stateless|all]   - Stops the specified containers
-./YARNdeployment.sh start-[stateful|stateless|all]  - Starts the specified containers if they are stopped
-./YARNdeployment.sh remove-[stateful|stateless|all] - Removes the specified containers
+  Stateful containers:  ow_minio, ow_couchdb, ow_zookeeper, ow_kafka
+  Stateless containers: ow_redis, ow_controller, ow_invoker, ow_apigateway
+./YARNdeployment.sh run-stateful <docker network>                  - Runs the stateful containers locally
+./YARNdeployment.sh run-stateless <docker network> [withJaaS]      - Runs the stateless containers locally
+./YARNdeployment.sh run-stateless-yarn <RM URL>                    - Runs the stateless containers on YARN
+./YARNdeployment.sh run-all <docker network> [withJaaS]            - Runs all containers locally
+./YARNdeployment.sh stop-[stateful|stateless|all]                  - Stops the specified local containers
+./YARNdeployment.sh start-[stateful|stateless|all]                 - Starts the specified local containers if they are stopped
+./YARNdeployment.sh remove-[stateful|stateless|stateless-yarn|all] - Removes the specified containers
 
 Shortcuts:
-./YARNdeployment.sh quick-start <git url> - Executes download-source, build-docker, download-cli, run-stateful, run-stateless, init-cli
-./YARNdeployment.sh launch - Executes run-stateful, run-stateless, init-cli
+./YARNdeployment.sh quick-start <git url> <docker network> - Executes download-source, build-docker, download-cli, run-stateful, run-stateless, init-cli
+./YARNdeployment.sh launch <docker network> - Executes run-stateful, run-stateless, init-cli
 ```
