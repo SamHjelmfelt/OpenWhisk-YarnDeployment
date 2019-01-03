@@ -243,11 +243,11 @@ function run-stateless-local(){
     -p 80:80 \
     -p 443:443 \
     -p 9000:9000 \
-    -p 9090:8080 \
+    -p 8081:8080 \
     --network $DOCKER_NETWORK \
     -e "REDIS_HOST=ow_redis" \
     -e "REDIS_PORT=6379" \
-    -e "PUBLIC_MANAGEDURL_PORT=9090" \
+    -e "PUBLIC_MANAGEDURL_PORT=8081" \
     -e "PUBLIC_MANAGEDURL_HOST=${LOCAL_IP}" \
     -e "REMOTE_CONFIG=minio:api-gateway" \
     -v "$TEMP_DIR/api-gateway-ssl:/etc/ssl:ro" \
@@ -445,7 +445,7 @@ case "$1" in
       ;;
   remove-all)
       remove-stateful
-      remove-stateless
+      remove-stateless-local
       ;;
   init-cli)
       init-cli

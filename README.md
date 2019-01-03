@@ -2,14 +2,19 @@
 
 A refactored version of the openwhisk-devtools docker compose project made specifically for OpenWhisk on YARN. The "docker-whisk-controller.env" file can be used to configure the OpenWhisk services.
 
+This project comes preconfigured with NiFi-Fn support using the "samhjelmfelt/nifi-fn:latest" image.
+https://issues.apache.org/jira/browse/NIFI-5922
+
+
 For a quickstart run the following:
 ```
 # Download this repo
-git clone https://github.com/SamHjelmfelt/OpenWhisk-YarnDeployment.git
-cd OpenWhisk-YarnDeployment
+wget https://github.com/SamHjelmfelt/OpenWhisk-YarnDeployment/archive/master.zip
+unzip master.zip
+cd OpenWhisk-YarnDeployment-master
 
-# Edit YARN settings. Documentation can be found here: https://github.com/SamHjelmfelt/incubator-openwhisk/blob/master/docs/yarn.md
-vi docker-whisk-controller.env
+# Edit YARN settings. By default, all containers are run locally. Documentation can be found here: https://github.com/SamHjelmfelt/incubator-openwhisk/blob/master/docs/yarn.md
+#vi docker-whisk-controller.env
 
 # Download, build, and run OpenWhisk with YARN support
 ./YARNdeployment.sh quick-start https://github.com/SamHjelmfelt/incubator-openwhisk.git yarnnetwork
