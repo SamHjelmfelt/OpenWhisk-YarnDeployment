@@ -135,7 +135,7 @@ function run-minio-local(){
 function load-file-minio(){
   MINIO_HOST="$1"
 
-  echo "pinging minio... $MINIO_HOST"
+  echo "pinging minio..."
   while ! nc -z $LOCAL_IP 9001 ; do printf '.'; sleep 5; done
 
   echo "loading configs into minio..."

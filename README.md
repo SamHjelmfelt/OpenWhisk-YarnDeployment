@@ -7,29 +7,39 @@ https://issues.apache.org/jira/browse/NIFI-5922
 The "docker-whisk-controller.env" file can be used to configure the OpenWhisk services. Commenting out the the YARN configurations (the first eight in the file) will result in action containers running locally instead of on YARN.
 
 For a quickstart, the following script will
-1. Download this repo
-2. Run minio, couchdb, kafka, and zookeeper containers locally
-3. Run redis, controller, invoker, and action containers on YARN (localhost:8088)
-4. Configure and run the api-gateway container locally
+1. Download and run a YARN sandbox docker container
+  * YARN RM URL will be localhost:8088
+  * Image is ~5GB
+2. Download this repo
+3. Run minio, couchdb, kafka, and zookeeper containers locally
+4. Run redis, controller, invoker, and action containers on YARN
+5. Configure and run the api-gateway container locally
 
 Docker is required.
 
 ```
 # Dependencies for minimal hosts
-#yum install git wget unzip netcat
+#yum install git wget unzip nc
 
-# (Optional) Download and run YARN sandbox (YARN RM URL will be localhost:8088). Image is ~5GB
+# Download and run YARN sandbox.
 curl -L https://github.com/SamHjelmfelt/Ember/archive/v1.1.zip -o Ember_1.1.zip
 unzip Ember_1.1.zip
 cd Ember-1.1/
 ./ember.sh createFromPrebuiltSample samples/yarnquickstart/yarnquickstart-sample-hotfix.ini
+cd ..
+
+#Wait for YARN to come up
+curl -s localhost:8088
+while [ $? -ne 0 ]; do printf '.'; sleep 5; curl -s localhost:8088; done
+echo "YARN is up"
 
 # Download this repo
 curl -L https://github.com/SamHjelmfelt/OpenWhisk-YarnDeployment/archive/master.zip -o OpenWhisk-YarnDeployment-master.zip
 unzip OpenWhisk-YarnDeployment-master.zip
 cd OpenWhisk-YarnDeployment-master
 
-# Run OpenWhisk on YARN
+# Run OpenWhisk on YARN (as ambari-qa)
+export USER=ambari-qa
 ./YARNdeployment.sh quick-start-yarn ember localhost:8088
 
 # Test
