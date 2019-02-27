@@ -8,8 +8,8 @@ The "docker-whisk-controller.env" file can be used to configure the OpenWhisk se
 
 For a quickstart, the following script will
 1. Download and run a YARN sandbox docker container
-  * YARN RM URL will be localhost:8088
-  * Image is ~5GB
+    * YARN RM URL will be localhost:8088
+    * Image is ~5GB
 2. Download this repo
 3. Run minio, couchdb, kafka, and zookeeper containers locally
 4. Run redis, controller, invoker, and action containers on YARN
@@ -45,6 +45,10 @@ export USER=ambari-qa
 # Test
 ./openwhisk-src/bin/wsk -i action create hello hello.js
 ./openwhisk-src/bin/wsk -i action invoke --blocking --result hello --param name "World"
+
+
+#Stateless containers can be rerun with the following:
+#./YARNdeployment.sh rerun-yarn stateless ember localhost:8088 ow_minio ow_couchdb ow_zookeeper ow_kafka
 ```
 
 Usage:
