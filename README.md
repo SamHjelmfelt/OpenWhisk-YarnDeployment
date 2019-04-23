@@ -15,7 +15,7 @@ For a quickstart, the following script will
 4. Run redis, controller, invoker, and action containers on YARN
 5. Configure and run the api-gateway container locally
 
-Docker is required.
+Docker is required. Should not be run as root.
 
 ```
 # Dependencies for minimal hosts
@@ -43,6 +43,7 @@ export USER=ambari-qa
 ./YARNdeployment.sh quick-start-yarn ember localhost:8088
 
 # Test
+./openwhisk-src/bin/wsk -i property set --auth $(cat openwhisk-src/ansible/files/auth.guest) --apihost localhost
 ./openwhisk-src/bin/wsk -i action create hello hello.js
 ./openwhisk-src/bin/wsk -i action invoke --blocking --result hello --param name "World"
 
